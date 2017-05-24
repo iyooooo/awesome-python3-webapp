@@ -7,7 +7,7 @@ import logging
 import asyncio, aiomysql
 
 def log(sql, args=()):
-    logging.info('SQL: %s' % sql)
+	logging.info('SQL: %s' % sql)
 
 @asyncio.coroutine
 def create_pool(loop, **kw):
@@ -18,13 +18,20 @@ def create_pool(loop, **kw):
 		port = kw.get('port', 3306),
 		user = kw['user'],
 		password = kw['password'],
-		db = kw['db'],
+		db = kw['database'],
 		charset = kw.get('charset','utf8'),
 		autocommit = kw.get('autocommit',True),
 		maxsize = kw.get('maxsize', 10),
 		minsize = kw.get('minsize', 10),
 		loop = loop
 	)
+
+@asyncio.coroutine
+def destory_pool(): #销毁连接池
+	global __pool
+	if __pool is not None:
+		__pool.close()
+		yield from  __pool.wait_closed()
 
 @asyncio.coroutine
 def execute(sql, args):
@@ -101,6 +108,10 @@ class ModelMetaclass(type):
 		attrs['__select__'] = 'select `%s`, %s from `%s`' % (primaryKey, ','.join(escaped_fields), tableName)
 		attrs['__insert__'] = 'insert into `%s` (%s, `%s`) values (%s)' % (tableName, ', '.join(escaped_fields), primaryKey, create_args_string(len(escaped_fields) + 1))
 		attrs['__delete__'] = 'delete from `%s` where `%s`=?' % (tableName, primaryKey) 
+		print('debug __fields__ %s:' % attrs['__fields__'])
+		print('debug __insert__ %s:' % attrs['__insert__'])
+		print('debug __select__ %s:' % attrs['__select__'])
+		print('debug __delete__ %s:' % attrs['__delete__'])
 		return type.__new__(cls, name, bases, attrs)
 
 
@@ -131,7 +142,7 @@ class Model(dict, metaclass=ModelMetaclass):
 		return value
 
 	@classmethod
-    async def findAll(cls, where=None, args=None, **kw):
+	async def findAll(cls, where=None, args=None, **kw):
 		' find objects by where clause. '
 		sql = [cls.__select__]
 		if where:
@@ -187,7 +198,7 @@ class Model(dict, metaclass=ModelMetaclass):
 			logging.info('success to insert record: affected rows: %s' % rows)
 		return rows
 
-    async def update(self):
+	async def update(self):
 		args = list(map(self.getValue, self.__fields__))
 		args.append(self.getValue(self.__primary_key__))
 		rows = await execute(self.__update__, args)
@@ -222,7 +233,7 @@ class IntegerField(Field):
 	def __init__(self, name=None, primary_key=False, default=0):
 		super().__init__(name, 'bigint', primary_key, default)
 
-class BooleanField(Field):
+class BoolenField(Field):
 
 	def __init__(self, name=None, default=False):
 		super().__init__(name, 'boolean', False, default)
