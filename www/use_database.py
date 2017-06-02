@@ -50,10 +50,10 @@ def test():
 	'''
 	findAll -- ok
 	'''
-	# yield from orm.create_pool(loop=loop, user='root', password='password', database='awesome')
-	# all = yield from User.findAll()
-	# print('findAll --------->',all)
-	# yield from orm.destory_pool()
+	yield from orm.create_pool(loop=loop, user='root', password='password', database='awesome')
+	all = yield from User.findAll(where='`id`= ?',args=['0014963686197240c165b36209a43b386b8cbcf75acab61000'],limit=2)
+	print('findAll --------->',all)
+	yield from orm.destory_pool()
 
 loop.run_until_complete(test())
 loop.close()

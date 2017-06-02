@@ -55,6 +55,7 @@ async def select(sql, args, size=None):
 	global __pool
 	async with __pool.get() as conn:
 		async with conn.cursor(aiomysql.DictCursor) as cur:
+			print('**********',sql.replace('?', '%s'),args)
 			await cur.execute(sql.replace('?', '%s'), args or ())
 			if size:
 				rs = await cur.fetchmany(size)
@@ -145,6 +146,7 @@ class Model(dict, metaclass=ModelMetaclass):
 		if where:
 			sql.append('where')
 			sql.append(where)
+
 		if args is None:
 			args = []
 		orderBy = kw.get('orderBy', None)
