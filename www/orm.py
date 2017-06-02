@@ -33,31 +33,34 @@ def destory_pool(): #销毁连接池
 		__pool.close()
 		yield from  __pool.wait_closed()
 
-@asyncio.coroutine
-def execute(sql, args):
+async def execute(sql, args, autocommit=True):
 	log(sql)
-	with (yield from __pool) as conn:
+	async with __pool.get() as conn:
+		if not autocommit:
+			await conn.begin()
 		try:
-			cur = yield from conn.cursor()
-			yield from cur.execute(sql.replace('?', '%s'), args)
-			affected = cur.rowcount
-			yield from cur.close()
+			async with conn.cursor(aiomysql.DictCursor) as cur:
+				await cur.execute(sql.replace('?','%s'), args)
+				affected = cur.rowcount
+			if not autocommit:
+				await conn.commit()
 		except BaseException as e:
+			if not autocommit:
+				await conn.rollback()
 			raise
 		return affected
 
-@asyncio.coroutine
-def select(sql, args, size=None):
+async def select(sql, args, size=None):
 	log(sql, args)
 	global __pool
-	with (yield from __pool) as conn:
-		cur = yield from conn.cursor(aiomysql.DictCursor)
-		yield from cur.execute(sql.replace('?', '%s'), args or ())
-		if size:
-			rs = yield from cur.fetchmany(size)
-		else:
-			rs = yield from cur.fetchall()
-		yield from cur.close()
+	async with __pool.get() as conn:
+		async with conn.cursor(aiomysql.DictCursor) as cur:
+			await cur.execute(sql.replace('?', '%s'), args or ())
+			if size:
+				rs = await cur.fetchmany(size)
+			else:
+				rs = await cur.fetchall()
+		# yield from cur.close()
 		logging.info('rows returned: %s' % len(rs))
 		return rs
 
@@ -70,10 +73,6 @@ def create_args_string(num):
 class ModelMetaclass(type):
 	
 	def __new__(cls, name, bases, attrs):
-		print('cls--------: %s' % cls)
-		print('name--------:%s' % name)
-		print('bases--------:%s' % bases)
-		print('attrs--------:%s' % attrs)
 		if name == 'Model':
 			return type.__new__(cls, name, bases, attrs)
 
@@ -99,7 +98,6 @@ class ModelMetaclass(type):
 			attrs.pop(k)
 
 		escaped_fields = list(map(lambda f: '`%s`' %f, fields))
-		print('debug ==---------> %s:' % ', '.join(escaped_fields))
 				
 		attrs['__mappings__'] = mappings
 		attrs['__table__'] = tableName
@@ -108,11 +106,7 @@ class ModelMetaclass(type):
 		attrs['__select__'] = 'select `%s`, %s from `%s`' % (primaryKey, ','.join(escaped_fields), tableName)
 		attrs['__insert__'] = 'insert into `%s` (%s, `%s`) values (%s)' % (tableName, ', '.join(escaped_fields), primaryKey, create_args_string(len(escaped_fields) + 1))
 		attrs['__delete__'] = 'delete from `%s` where `%s`=?' % (tableName, primaryKey) 
-
-		print('debug __fields__ %s:' % attrs['__fields__'])
-		print('debug __insert__ %s:' % attrs['__insert__'])
-		print('debug __select__ %s:' % attrs['__select__'])
-		print('debug __delete__ %s:' % attrs['__delete__'])
+		attrs['__update__'] = 'update `%s` set %s where `%s`=?' % (tableName, ', '.join(map(lambda f: '`%s`=?' % (mappings.get(f).name or f), fields)), primaryKey)
 
 		return type.__new__(cls, name, bases, attrs)
 
@@ -144,7 +138,8 @@ class Model(dict, metaclass=ModelMetaclass):
 		return value
 
 	@classmethod
-	async def findAll(cls, where=None, args=None, **kw):
+	@asyncio.coroutine
+	def findAll(cls, where=None, args=None, **kw):
 		' find objects by where clause. '
 		sql = [cls.__select__]
 		if where:
@@ -167,19 +162,21 @@ class Model(dict, metaclass=ModelMetaclass):
 				args.extend(limit)
 			else:
 				raise ValueError('Invalid limit value: %s' % str(limit))
-		rs = await select(' '.join(sql), args)
+		rs = yield from select(' '.join(sql), args)
 		return [cls(**r) for r in rs]
 
 	@classmethod
-	async def findNumber(cls, selectField, where=None, args=None):
+	@asyncio.coroutine
+	def findNumber(cls, selectField, where=None, args=None):
 		' find number by select and where. '
 		sql = ['select %s _num_ from `%s`' % (selectField, cls.__table__)]
+		print(sql)
 		if where:
-			sql.append('where')
 			sql.append(where)
-		rs = await select(' '.join(sql), args, 1)
+		rs = yield from select(' '.join(sql), args, 1)
 		if len(rs) == 0:
 			return None
+		print(rs)
 		return rs[0]['_num_']
 	
 	@classmethod
@@ -200,17 +197,20 @@ class Model(dict, metaclass=ModelMetaclass):
 			logging.info('success to insert record: affected rows: %s' % rows)
 		return rows
 
-
-	async def update(self):
+	@asyncio.coroutine
+	def update(self):
 		args = list(map(self.getValue, self.__fields__))
 		args.append(self.getValue(self.__primary_key__))
-		rows = await execute(self.__update__, args)
+		rows = yield from execute(self.__update__, args)
 		if rows != 1:
 			logging.warn('failed to update by primary key: affected rows: %s' % rows)
 
-	async def remove(self):
+	@asyncio.coroutine
+	def remove(self):
+		
 		args = [self.getValue(self.__primary_key__)]
-		rows = await execute(self.__delete__, args)
+		rows = yield from execute(self.__delete__, args)
+		print('*********:%s' % rows)
 		if rows != 1:
 			logging.warn('failed to remove by primary key: affected rows: %s' % rows)
 
