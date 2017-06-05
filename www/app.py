@@ -31,7 +31,7 @@ def init_jinja2(app, **kw):
 
 	path = kw.get('path', None)
 	if path is None:
-		path = os.path.join(os.path.dirname(os.path.abspatch(__file__)), 'templates')
+		path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 	logging.info('set jinja2 templates path:%s' % path)
 	env = Environment(loader=FileSystemLoader(path), **optins)
 	filters = kw.get('filters', None)
@@ -110,7 +110,7 @@ def datetime_filter(t):
 	return u'%s年%s%月s日' % (dt.year, dt.month, dt.day)
 
 async def init(loop):
-	await orm.creat_pool(loop=loop, host='127.0.0.1', port=3306, user='root', password='password', database='awesome')
+	await orm.create_pool(loop=loop, host='127.0.0.1', port=3306, user='root', password='password', database='awesome')
 	app = web.Application(loop=loop, middlewares=[
 		logger_factory, response_factory
 	])

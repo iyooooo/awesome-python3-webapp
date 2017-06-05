@@ -35,7 +35,7 @@ def post(path):
 	return decorator
 
 def get_required_kw_args(fn):
-	args[]
+	args = []
 	params = inspect.signature(fn).parameters
 	for name, param in params.items():
 		if param.kind == inspect.parameter.KEYWORD_ONLY and param.default == inspect.parameter.empty:
@@ -164,11 +164,11 @@ def add_routes(app, module_name):
 		if attr.startwith('_'):
 			continue
 		fn = getattr(mod, attr)
-        if callable(fn):
-        	method = getattr(fn, '__method__', None)
-        	path = getattr(fn, '__path__', None)
-        	if method and path:
-        		add_route(app, fn)
+		if callable(fn):
+			method = getattr(fn, '__method__', None)
+			path = getattr(fn, '__path__', None)
+			if method and path:
+				add_route(app, fn)
 
 
 
