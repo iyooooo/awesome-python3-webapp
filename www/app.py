@@ -18,6 +18,8 @@ from jinja2 import Environment, FileSystemLoader
 import orm
 from coroweb import add_routes, add_static
 
+# from handlers import index
+
 def init_jinja2(app, **kw):
 	logging.info('init jinja2...')
 	optins = dict(
@@ -116,6 +118,7 @@ async def init(loop):
 	])
 	init_jinja2(app, filters=dict(datetime=datetime_filter))
 	add_routes(app, 'handlers')
+	# app.router.add_route('GET', '/', index)
 	add_static(app)
 	srv = await loop.create_server(app.make_handler(), '127.0.0.1', 9000)
 	logging.info('server started at http://127.0.0.1:9000...')

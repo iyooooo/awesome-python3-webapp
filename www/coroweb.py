@@ -38,7 +38,7 @@ def get_required_kw_args(fn):
 	args = []
 	params = inspect.signature(fn).parameters
 	for name, param in params.items():
-		if param.kind == inspect.parameter.KEYWORD_ONLY and param.default == inspect.parameter.empty:
+		if param.kind == inspect.Parameter.KEYWORD_ONLY and param.default == inspect.Parameter.empty:
 			args.append(name)
 	return tuple(args)
 
@@ -77,6 +77,7 @@ def has_request_arg(fn):
 class RequestHandler(object):
 	
 	def __init__(self, app, fn):
+		print('RequestHandler __init__')
 		self.app = app
 		self._func = fn
 		self._has_request_arg = has_request_arg(fn)
@@ -86,6 +87,7 @@ class RequestHandler(object):
 		self._required_kw_args = get_required_kw_args(fn)
 
 	async def __call__(self, request):
+		print('RequestHandler __call__')
 		kw = None
 		if self._has_var_kw_arg or self._has_named_kw_args or self._has_request_arg:
 			if request.method == 'POST':
@@ -160,33 +162,14 @@ def add_routes(app, module_name):
 	else:
 		name = module_name[n+1:]
 		mod = getattr(__import__(module_name[:n], globals(), locals(), [name]), name)
+
 	for attr in dir(mod):
 		if attr.startswith('_'):
 			continue
 		fn = getattr(mod, attr)
 		if callable(fn):
 			method = getattr(fn, '__method__', None)
-			path = getattr(fn, '__path__', None)
+			path = getattr(fn, '__route__', None)
 			if method and path:
 				add_route(app, fn)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
