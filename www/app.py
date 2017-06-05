@@ -30,7 +30,7 @@ def init_jinja2(app, **kw):
 		variable_end_string = kw.get('variable_end_string', '}}'),
 		auto_reload = kw.get('auto_reload', True)
 	)
-
+	print('init_jinia2 ************* ',optins)
 	path = kw.get('path', None)
 	if path is None:
 		path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
