@@ -141,7 +141,7 @@ class RequestHandler(object):
 def add_static(app):
 	path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
 	app.router.add_static('/static/', path)
-	logging.info('add static :%s => %s' % ('/static/', patch))
+	logging.info('add static :%s => %s' % ('/static/', path))
 
 def add_route(app, fn):
 	method = getattr(fn, '__method__', None)
@@ -161,7 +161,7 @@ def add_routes(app, module_name):
 		name = module_name[n+1:]
 		mod = getattr(__import__(module_name[:n], globals(), locals(), [name]), name)
 	for attr in dir(mod):
-		if attr.startwith('_'):
+		if attr.startswith('_'):
 			continue
 		fn = getattr(mod, attr)
 		if callable(fn):
