@@ -77,7 +77,7 @@ def has_request_arg(fn):
 class RequestHandler(object):
 	
 	def __init__(self, app, fn):
-		print('RequestHandler __init__',fn)
+		# print('RequestHandler __init__',fn)
 		self.app = app
 		self._func = fn
 		self._has_request_arg = has_request_arg(fn)
@@ -133,7 +133,7 @@ class RequestHandler(object):
 			for name in self._required_kw_args:
 				if not name in kw:
 					return web.HTTPBadRequest('Missing argument: %s' % name)
-		logging.info('call with args: %s' % str(kw))
+		logging.info('RequestHandler call with args: %s' % str(kw))
 		try:
 			r = await self._func(**kw)
 			return r
@@ -143,7 +143,7 @@ class RequestHandler(object):
 def add_static(app):
 	path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
 	app.router.add_static('/static/', path)
-	logging.info('add static :%s => %s' % ('/static/', path))
+	# logging.info('add static :%s => %s' % ('/static/', path))
 
 def add_route(app, fn):
 	method = getattr(fn, '__method__', None)
@@ -152,7 +152,7 @@ def add_route(app, fn):
 		raise ValueError('@get or @post not define in %s.' % str(fn))
 	if not asyncio.iscoroutinefunction(fn) and not inspect.isgeneratorfunction(fn):
 		fn = asyncio.coroutine(fn)
-	logging.info('add route %s %s => %s(%s)' % (method, path, fn.__name__, ','.join(inspect.signature(fn).parameters.keys())))
+	# logging.info('add route %s %s => %s(%s)' % (method, path, fn.__name__, ','.join(inspect.signature(fn).parameters.keys())))
 	app.router.add_route(method, path, RequestHandler(app, fn))
 
 def add_routes(app, module_name):
