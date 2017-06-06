@@ -10,10 +10,10 @@ def test():
 	'''
 	insert  -- ok
 	'''
-	# yield from orm.create_pool(loop=loop, user='root', password='password', database='awesome')
-	# u = User(name='Test_7', email='test_7@example.com', passwd='1234567890', image='about:blank')
-	# yield from u.save()
-	# yield from orm.destory_pool()
+	yield from orm.create_pool(loop=loop, user='root', password='password', database='awesome')
+	u = User(name='fan.yang', email='fa.yang0522@foxmail.com', passwd='a4bcc7ae8cce721e6093ab245b0ee8cebeb0a55b', image='about:blank')
+	yield from u.save()
+	yield from orm.destory_pool()
 
 	'''
 	delete  -- ok
@@ -50,10 +50,10 @@ def test():
 	'''
 	findAll -- ok
 	'''
-	yield from orm.create_pool(loop=loop, user='root', password='password', database='awesome')
-	all = yield from User.findAll(where='`id`= ?',args=['0014963686197240c165b36209a43b386b8cbcf75acab61000'],limit=2)
-	print('findAll --------->',all)
-	yield from orm.destory_pool()
+	# yield from orm.create_pool(loop=loop, user='root', password='password', database='awesome')
+	# all = yield from User.findAll(where='`id`= ?',args=['0014963686197240c165b36209a43b386b8cbcf75acab61000'],limit=2)
+	# print('findAll --------->',all)
+	# yield from orm.destory_pool()
 
 loop.run_until_complete(test())
 loop.close()

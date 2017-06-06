@@ -44,7 +44,7 @@ def init_jinja2(app, **kw):
 
 async def logger_factory(app, handler):
 	async def logger(request):
-		logging.info('Request: %s %s ' % (request.method, request.path))
+		logging.info('logger_factory: %s %s ' % (request.method, request.path))
 		return (await handler(request))
 	return logger
 	
@@ -53,16 +53,16 @@ async def data_factory(app, handler):
 		if request.method == 'POST':
 			if request.content_type.startswith('applicaton/json'):
 				request.__data__ = await request.json
-				logging.info('request json:%s' % str(request.__data__))
+				logging.info('data_factory json:%s' % str(request.__data__))
 			elif request.content_type.startswith('application/x-www-form-urlencoded'):
 				request.__data__ = await request.post()
-				logging.info('request form: %s' % str(request.__data__))
+				logging.info('data_factory form: %s' % str(request.__data__))
 		return (await handler(request))
 	return parse_data
 
 async def response_factory(app, handler):
 	async def response(request):
-		logging.info('Response handler...')
+		logging.info('response_factory')
 		r = await handler(request)
 		if  isinstance(r, web.StreamResponse):
 			return r

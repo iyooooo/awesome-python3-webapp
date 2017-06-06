@@ -55,7 +55,6 @@ async def select(sql, args, size=None):
 	global __pool
 	async with __pool.get() as conn:
 		async with conn.cursor(aiomysql.DictCursor) as cur:
-			print('**********',sql.replace('?', '%s'),args)
 			await cur.execute(sql.replace('?', '%s'), args or ())
 			if size:
 				rs = await cur.fetchmany(size)
@@ -212,7 +211,6 @@ class Model(dict, metaclass=ModelMetaclass):
 		
 		args = [self.getValue(self.__primary_key__)]
 		rows = yield from execute(self.__delete__, args)
-		print('*********:%s' % rows)
 		if rows != 1:
 			logging.warn('failed to remove by primary key: affected rows: %s' % rows)
 
