@@ -50,7 +50,7 @@ def cookie2user(cookie_str):
 		if int(expires) < time.time():
 			return None
 		user = yield from User.find(uid)
-		logging.info('cookie2user ************* %s' % user)
+		# logging.info('cookie2user ************* %s' % user)
 		if user is None:
 			return None
 		s = '%s-%s-%s-%s' % (uid,user.passwd,expires,_COOKIE_KEY)
@@ -64,7 +64,7 @@ def cookie2user(cookie_str):
 		return None
 
 @get('/')
-async def index():
+async def index(request):
 	summary = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
 	blogs = [
 		Blog(id='1', name='Test Blog', summary=summary, created_at=time.time()-120),
@@ -73,7 +73,8 @@ async def index():
 	]
 	return {
 		'__template__':'blogs.html',
-		'blogs': blogs
+		'blogs': blogs,
+		'__user__': request.__user__
 	}
 
 @get('/register')

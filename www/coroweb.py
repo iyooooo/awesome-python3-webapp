@@ -67,7 +67,7 @@ def has_request_arg(fn):
 	params = sig.parameters
 	found = False
 	for name, param in params.items():
-		if name == 'requst':
+		if name == 'request':
 			found = True
 			continue
 		if found and (param.kind != inspect.Parameter.VAR_POSITIONAL and param.kind != inspect.Parameter.KEYWORD_ONLY and param.kind != inspect.Parameter.VAR_KEYWORD):
@@ -77,7 +77,7 @@ def has_request_arg(fn):
 class RequestHandler(object):
 	
 	def __init__(self, app, fn):
-		# print('RequestHandler __init__',app,fn)
+		print('RequestHandler __init__',app,fn)
 		self.app = app
 		self._func = fn
 		self._has_request_arg = has_request_arg(fn)
