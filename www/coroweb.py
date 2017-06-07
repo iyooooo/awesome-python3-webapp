@@ -77,7 +77,7 @@ def has_request_arg(fn):
 class RequestHandler(object):
 	
 	def __init__(self, app, fn):
-		# print('RequestHandler __init__',fn)
+		# print('RequestHandler __init__',app,fn)
 		self.app = app
 		self._func = fn
 		self._has_request_arg = has_request_arg(fn)
@@ -87,7 +87,7 @@ class RequestHandler(object):
 		self._required_kw_args = get_required_kw_args(fn)
 
 	async def __call__(self, request):
-		print('RequestHandler __call__')
+		print('RequestHandler __call__', request.content_type)
 		kw = None
 		if self._has_var_kw_arg or self._has_named_kw_args or self._has_request_arg:
 			if request.method == 'POST':
@@ -99,11 +99,11 @@ class RequestHandler(object):
 					if not isinstance(params, dict):
 						return web.HTTPBadRequest('JSON body must be object.')
 					kw = params
-				elif ct.startswith('application/x-www-form-urlencoded') or ct.startwith('multipart/form-data'):
+				elif ct.startswith('application/x-www-form-urlencoded') or ct.startswith('multipart/form-data'):
 					params = await request.post()
 					kw = dict(**params)
 				else:
-					return web.HTTPBadRequest('Unsupported Content-Type: %s'% request.content_type)
+					return web.HTTPBadRequest('Unsupported Content-Type: %s' % request.content_type)
 			if request.method == 'GET':
 				qs = request.query_string
 				if qs:
@@ -133,7 +133,7 @@ class RequestHandler(object):
 			for name in self._required_kw_args:
 				if not name in kw:
 					return web.HTTPBadRequest('Missing argument: %s' % name)
-		logging.info('RequestHandler call with args: %s' % str(kw))
+		logging.info('RequestHandler call with args: %s %s' % (self._func,str(kw)))
 		try:
 			r = await self._func(**kw)
 			return r
