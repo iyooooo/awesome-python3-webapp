@@ -77,7 +77,7 @@ def has_request_arg(fn):
 class RequestHandler(object):
 	
 	def __init__(self, app, fn):
-		print('RequestHandler __init__',app,fn)
+		# print('RequestHandler __init__',app,fn)
 		self.app = app
 		self._func = fn
 		self._has_request_arg = has_request_arg(fn)
@@ -87,7 +87,7 @@ class RequestHandler(object):
 		self._required_kw_args = get_required_kw_args(fn)
 
 	async def __call__(self, request):
-		print('RequestHandler __call__', request.content_type)
+		# print('RequestHandler __call__', request.content_type)
 		kw = None
 		if self._has_var_kw_arg or self._has_named_kw_args or self._has_request_arg:
 			if request.method == 'POST':
@@ -152,7 +152,7 @@ def add_route(app, fn):
 		raise ValueError('@get or @post not define in %s.' % str(fn))
 	if not asyncio.iscoroutinefunction(fn) and not inspect.isgeneratorfunction(fn):
 		fn = asyncio.coroutine(fn)
-	logging.info('add route %s %s => %s(%s)' % (method, path, fn.__name__, ','.join(inspect.signature(fn).parameters.keys())))
+	# logging.info('add route %s %s => %s(%s)' % (method, path, fn.__name__, ','.join(inspect.signature(fn).parameters.keys())))
 	app.router.add_route(method, path, RequestHandler(app, fn))
 
 def add_routes(app, module_name):
