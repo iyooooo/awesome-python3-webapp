@@ -152,3 +152,11 @@ def api_create_blog(request, *, name, summary, content):
 @get('/signin')
 def signin():
 	return {'__template__': 'signin.html'}
+
+@get('/signout')
+def signout(request):
+	referer = request.headers.get('Referer')
+	r = web.HTTPFound(referer or '/')
+	r.set_cookie(COOKIE_NAME, '-deleted-', max_age=0, httponly=True)
+	logging.info('user signed out.')
+	return r
