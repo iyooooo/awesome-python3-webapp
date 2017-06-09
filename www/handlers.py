@@ -14,7 +14,7 @@ from aiohttp import web
 from coroweb import get, post
 from models import User, Comment, Blog, next_id
 
-from apis import APIValueError
+from apis import APIValueError, Page
 from config import configs
 
 import requests
@@ -160,7 +160,8 @@ def signin():
 @get('/signout')
 def signout(request):
 	referer = request.headers.get('Referer')
-	r = web.HTTPFound(referer or '/')
+	# logging.info('signout ---------------------- > %s' % referer)
+	r = web.HTTPFound('/')
 	r.set_cookie(COOKIE_NAME, '-deleted-', max_age=0, httponly=True)
 	logging.info('user signed out.')
 	return r
@@ -178,7 +179,7 @@ def manage_create_blog(request):
 
 @post('/api/blogs')
 def api_create_blog(request, *, name, summary, content):
-	# logging.info('/api/blogs --------> name：%s\n summary：%s\n content：%s\n ' % (name, summary, content))
+	
 	check_admin(request)
 	if not name or not name.strip():
 		raise APIValueError('name', 'name cannot be empty.')
@@ -189,6 +190,7 @@ def api_create_blog(request, *, name, summary, content):
 	blog = Blog(user_id=request.__user__.id, user_name=request.__user__.name, user_image=request.__user__.image, 
 		name=name.strip(), summary=summary.strip(), content=content.strip())
 	yield from blog.save()
+	logging.info('api_create_blog-------->  %s\n ' % blog)
 	return blog
 
 @get('/blog/{id}')
@@ -208,6 +210,26 @@ def get_blog(request, *, id):
 @get('/api/blogs/{id}')
 def api_get_blog(*, id):
 	blog = yield from Blog.find(id)
+	logging.info('api_get_blog-------->  %s\n ' % blog)
 	return blog
+
+# day-12
+@get('/api/blogs')
+def api_blogs(*, page='1'):
+	page_index = get_page_index(page)
+	num = yield from Blog.findNumber('count(id)')
+	p = Page(num, page_index)
+	if num == 0:
+		return dict(page=p, blogs=())
+	blogs = yield from Blog.findAll(orderBy='created_at desc', limit='p.offset, p.limit')
+	return dict(page=p, blogs=blogs)
+
+@get('manage/blogs')
+def manage_blogs(*, page='1'):
+	return {
+		'__template__': 'manage_blogs.html'
+		'page_index': get_page_index(page)
+	}
+	
 
 
