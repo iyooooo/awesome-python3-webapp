@@ -175,7 +175,6 @@ def manage_create_blog(request):
 
 @post('/api/blogs')
 def api_create_blog(request, *, name, summary, content):
-	
 	check_admin(request)
 	if not name or not name.strip():
 		raise APIValueError('name', 'name cannot be empty.')
@@ -228,5 +227,23 @@ def manage_blogs(request, *, page='1'):
 		'__user__': request.__user__
 	}
 	
+@get('/manage/blogs/edit')
+def manage_edit_blog(request, *, id):
+	return {
+		'__template__': 'manage_blog_edit.html',
+		'id': id,
+		'__user__': request.__user__,
+		'action': '/api/blogs/%s' % id
+	}
 
+@post('/api/blogs/{id}')
+def api_edit_blog(request, *, id):
+	blog = Blog(id=id, user_id=request.__user__.id, user_name=request.__user__.user_name)
+	yield from blog.update()
+	r = web.Response()
+	r.set_cookie(COOKIE_NAME, user2cookie(user,86400), max_age=86400, httponly=True)
+	user.passwd = '******'
+	r.content_type = 'application/json'
+	r.body = json.dumps(user, ensure_ascii=False).encode('utf-8')
+	return r
 
