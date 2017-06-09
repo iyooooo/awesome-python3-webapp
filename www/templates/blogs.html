@@ -5,12 +5,36 @@
 {% block beforehead %}
 
 <script>
+<script type="text/javascript">
+function initVM(data) {
+    var VM = new Vue({
+        el: '#vm',
+        data: {
+            // blogs: data.blogs,
+            page: data.page
+        }
+    });
+    $('#vm').show();
+}
+$(function(){
+    getJSON('/api/blogs', {
+        page: {{page_index}}
+    }, function (err, results) {
+        if (err) {
+            return fatal(err)
+        }
+        $('#loading').hide();
+        initVM(results);
+    });
+});
 </script>
 
 {% endblock %}
 
 {% block content %}
-
+    <div id='loading' class="uk-width-1-1 uk-text-center">
+        <span><i class="uk-icon-spinner uk-icon-medium uk-icon-spin"></i> 正在加载...</span>
+    </div>
     <div class="uk-width-medium-3-4">
     {% for blog in blogs %}
         <article class="uk-article">
@@ -21,6 +45,7 @@
         </article>
         <hr class="uk-article-divider">
     {% endfor %}
+        <div v-component="pagination" v-width="page"></div>
     </div>
 
     <div class="uk-width-medium-1-4">

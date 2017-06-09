@@ -86,13 +86,12 @@ def cookie2user(cookie_str):
 		return None
 
 @get('/')
-def index(request):
-	time.sleep(1)
-	summary = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
-	blogs = yield from Blog.findAll(orderBy='created_at desc')
+def index(request, *, page='1'):
+	blogs = yield from Blog.findAll(orderBy='created_at desc', limit=(0, 10))
 	return {
 		'__template__':'blogs.html',
 		'blogs': blogs,
+		'page_index': get_page_index(page),
 		'__user__': request.__user__
 	}
 
@@ -174,7 +173,6 @@ def manage_create_blog(request):
 		'id': '',
 		'action': '/api/blogs',
 		'__user__': request.__user__
-
 	}
 
 @post('/api/blogs')
@@ -221,14 +219,15 @@ def api_blogs(*, page='1'):
 	p = Page(num, page_index)
 	if num == 0:
 		return dict(page=p, blogs=())
-	blogs = yield from Blog.findAll(orderBy='created_at desc', limit='p.offset, p.limit')
+	blogs = yield from Blog.findAll(orderBy='created_at desc', limit=(p.offset, p.limit))
 	return dict(page=p, blogs=blogs)
 
-@get('manage/blogs')
-def manage_blogs(*, page='1'):
+@get('/manage/blogs')
+def manage_blogs(request, *, page='1'):
 	return {
-		'__template__': 'manage_blogs.html'
-		'page_index': get_page_index(page)
+		'__template__': 'manage_blogs.html',
+		'page_index': get_page_index(page),
+		'__user__': request.__user__
 	}
 	
 
