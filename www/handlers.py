@@ -17,8 +17,6 @@ from models import User, Comment, Blog, next_id
 from apis import APIValueError, Page
 from config import configs
 
-import requests
-
 COOKIE_NAME = 'awesession'
 _COOKIE_KEY = configs.session.secret
 
