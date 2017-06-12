@@ -118,7 +118,7 @@ class RequestHandler(object):
 				# remove all unamed kw:
 				copy = dict()
 				for name in self._named_kw_args:
-					logging.info('kw *********** ' , request.match_info)
+					logging.info('kw----------> %s' %kw)
 					copy[name] = kw[name]
 				kw = copy
 			# check named arg:

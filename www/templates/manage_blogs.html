@@ -22,7 +22,8 @@ function initVM(data) {
 						if (err) {
 							return alert(err.message || err.error || err);
 						}
-						refresh();
+						// refresh();
+						return location.assign('/manage/blogs');
 					});
 				}
 			}
