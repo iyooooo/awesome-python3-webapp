@@ -257,7 +257,7 @@ def api_delete_blog(request, *, id):
 	check_admin(request)
 	blog = yield from Blog.find(id)
 	yield from blog.remove()
-	return blog
+	return dict(id=id)
 
 
 	
