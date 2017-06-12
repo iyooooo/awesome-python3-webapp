@@ -237,13 +237,27 @@ def manage_edit_blog(request, *, id):
 	}
 
 @post('/api/blogs/{id}')
-def api_edit_blog(request, *, id):
-	blog = Blog(id=id, user_id=request.__user__.id, user_name=request.__user__.user_name)
+def api_edit_blog(request, *, id, name, summary, content):
+	check_admin(request)
+	blog = yield from Blog.find(id)
+	if not name or not name.strip():
+		raise APIValueError('name', 'name cannot be empty.')
+	if not summary or not summary.strip():
+		raise APIValueError('summary', 'name cannot be empty')
+	if not content or not content.strip():
+		raise APIValueError('content', 'content cannot be empty')
+	blog.name = name
+	blog.summary = summary
+	blog.content = content
 	yield from blog.update()
-	r = web.Response()
-	r.set_cookie(COOKIE_NAME, user2cookie(user,86400), max_age=86400, httponly=True)
-	user.passwd = '******'
-	r.content_type = 'application/json'
-	r.body = json.dumps(user, ensure_ascii=False).encode('utf-8')
-	return r
+	return blog
 
+@post('/api/blogs/{id}/delete')
+def api_delete_blog(request, *, id):
+	check_admin(request)
+	blog = yield from Blog.find(id)
+	yield from blog.remove()
+	return blog
+
+
+	
