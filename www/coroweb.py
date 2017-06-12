@@ -87,7 +87,7 @@ class RequestHandler(object):
 		self._required_kw_args = get_required_kw_args(fn)
 
 	async def __call__(self, request):
-		# print('RequestHandler __call__', request.content_type)
+		
 		kw = None
 		if self._has_var_kw_arg or self._has_named_kw_args or self._has_request_arg:
 			if request.method == 'POST':
@@ -99,9 +99,11 @@ class RequestHandler(object):
 					if not isinstance(params, dict):
 						return web.HTTPBadRequest('JSON body must be object.')
 					kw = params
+					print('RequestHandler application/json ---------> %s' % params)
 				elif ct.startswith('application/x-www-form-urlencoded') or ct.startswith('multipart/form-data'):
 					params = await request.post()
 					kw = dict(**params)
+					print('RequestHandler application/x-www-form-urlencoded---------> %s' % kw)
 				else:
 					return web.HTTPBadRequest('Unsupported Content-Type: %s' % request.content_type)
 			if request.method == 'GET':
