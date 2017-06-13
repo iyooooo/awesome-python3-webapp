@@ -189,9 +189,9 @@ def api_create_blog(request, *, name, summary, content):
 	return blog
 
 @get('/blog/{id}')
-def get_blog(request, *, id):
+def get_blog(request, *, id, page=1):
 	blog = yield from Blog.find(id)
-	comments = yield from Comment.findAll('blog_id=?',[id], orderBy='created_at desc')
+	comments = yield from Comment.findAll('blog_id=?', [id], orderBy='created_at desc')
 	for c in comments:
 		c.html_content = text2html(c.content)
 	blog.html_content =  markdown2.markdown(blog.content)
@@ -290,7 +290,7 @@ def api_comments(*, page=1):
 	num = yield from Comment.findNumber('count(id)')
 	p = Page(num, page_index)
 	if num == 0:
-		return dict(page=p, blogs=())
+		return dict(page=p, comments=())
 	comments = yield from Comment.findAll(orderBy='created_at desc', limit=(p.offset, p.limit))
 	return dict(page=p, comments=comments)
 
@@ -315,7 +315,7 @@ def api_users(*, page=1):
 	num = yield from User.findNumber('count(id)')
 	p = Page(num, page_index)
 	if num == 0:
-		return dict(page=p, blogs=())
+		return dict(page=p, users=())
 	users = yield from User.findAll(orderBy='created_at desc', limit=(p.offset, p.limit))
 	return dict(page=p, users=users)
 
