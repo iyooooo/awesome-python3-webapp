@@ -276,4 +276,27 @@ def api_create_comment(id, request, *, content):
 	yield from comment.save()
 	return comment
 
-	
+@get('/manage/comments')
+def manage_comments(request, *, page=1):
+	return {
+		'__template__': 'manage_comments.html',
+		'page_index': get_page_index(page),
+		'__user__': request.__user__
+	}
+
+@get('/api/comments')
+def api_comments(*, page=1):
+	page_index = get_page_index(page)
+	num = yield from Comment.findNumber('count(id)')
+	p = Page(num, page_index)
+	if num == 0:
+		return dict(page=p, blogs=())
+	comments = yield from Comment.findAll(orderBy='created_at desc', limit=(p.offset, p.limit))
+	return dict(page=p, comments=comments)
+
+@post('/api/comments/{id}/delete')
+def api_delete_comment(request, *, id):
+	check_admin(request)
+	comment = yield from Comment.find(id)
+	yield from comment.remove()
+	return dict(id=id)
