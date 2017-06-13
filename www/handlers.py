@@ -300,3 +300,28 @@ def api_delete_comment(request, *, id):
 	comment = yield from Comment.find(id)
 	yield from comment.remove()
 	return dict(id=id)
+
+@get('/manage/users')
+def manage_users(request, *, page=1):
+	return {
+		'__template__': 'manage_users.html',
+		'page_index': get_page_index(page),
+		'__user__': request.__user__
+	}
+
+@get('/api/users')
+def api_users(*, page=1):
+	page_index = get_page_index(page)
+	num = yield from User.findNumber('count(id)')
+	p = Page(num, page_index)
+	if num == 0:
+		return dict(page=p, blogs=())
+	users = yield from User.findAll(orderBy='created_at desc', limit=(p.offset, p.limit))
+	return dict(page=p, users=users)
+
+@post('/api/users/{id}/delete')
+def api_delete_user(request, *, id):
+	check_admin(request)
+	user = yield from User.find(id)
+	yield from user.remove()
+	return dict(id=id)
