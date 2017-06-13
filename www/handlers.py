@@ -207,7 +207,6 @@ def get_blog(request, *, id, page=1):
 		'__template__': 'blog.html',
 		'blog': blog,
 		'comments': comments,
-		'page': p,
 		'__user__': request.__user__
 	}
 
