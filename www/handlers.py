@@ -85,11 +85,19 @@ def cookie2user(cookie_str):
 
 @get('/')
 def index(request, *, page='1'):
-	blogs = yield from Blog.findAll(orderBy='created_at desc', limit=(0, 10))
+
+	page_index = get_page_index(page)
+	num = yield from Blog.findNumber('count(id)')
+	page = Page(num, page_index)
+	if num == 0:
+		blogs = []
+	else:
+		# logging.info('page---------------->%s %s'  %(page.offset, page.limit))
+		blogs = yield from Blog.findAll(orderBy='created_at desc', limit=(page.offset, page.limit))
 	return {
-		'__template__':'blogs.html',
+		'__template__': 'blogs.html',
+		'page': page,
 		'blogs': blogs,
-		'page_index': get_page_index(page),
 		'__user__': request.__user__
 	}
 
@@ -199,6 +207,7 @@ def get_blog(request, *, id, page=1):
 		'__template__': 'blog.html',
 		'blog': blog,
 		'comments': comments,
+		'page': p,
 		'__user__': request.__user__
 	}
 
@@ -217,6 +226,7 @@ def api_blogs(*, page='1'):
 	if num == 0:
 		return dict(page=p, blogs=())
 	blogs = yield from Blog.findAll(orderBy='created_at desc', limit=(p.offset, p.limit))
+	logging.info(len(blogs))
 	return dict(page=p, blogs=blogs)
 
 @get('/manage/blogs')

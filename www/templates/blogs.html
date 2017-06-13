@@ -4,34 +4,13 @@
 
 {% block beforehead %}
 
-<script>
 <script type="text/javascript">
-function initVM(data) {
-    var VM = new Vue({
-        el: '#vm',
-        data: {
-            // blogs: data.blogs,
-            page: data.page
-        }
-    });
-    $('#vm').show();
-}
-$(function(){
-    getJSON('/api/blogs', {
-        page: {{page_index}}
-    }, function (err, results) {
-        if (err) {
-            return fatal(err)
-        }
-        $('#loading').hide();
-        initVM(results);
-    });
-});
 </script>
 
 {% endblock %}
 
 {% block content %}
+    
     <div class="uk-width-medium-3-4">
     {% for blog in blogs %}
         <article class="uk-article">
@@ -41,9 +20,11 @@ $(function(){
             <p><a href="/blog/{{ blog.id }}">继续阅读<i class="uk-icon-angle-double-right"></i></a></p>
         </article>
         <hr class="uk-article-divider">
-    {% endfor %}
-        <div v-component="pagination" v-width="page"></div>
+     {% endfor %}
+    {{ pagination('?page=', page) }}
     </div>
+    
+   
 
     <div class="uk-width-medium-1-4">
         <div class="uk-panel uk-panel-header">
