@@ -99,7 +99,7 @@ class RequestHandler(object):
 					if not isinstance(params, dict):
 						return web.HTTPBadRequest('JSON body must be object.')
 					kw = params
-					print('RequestHandler application/json ---------> %s' % params)
+					logging.info('RequestHandler application/json ---------> %s' % params)
 				elif ct.startswith('application/x-www-form-urlencoded') or ct.startswith('multipart/form-data'):
 					params = await request.post()
 					kw = dict(**params)
