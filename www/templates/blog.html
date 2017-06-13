@@ -21,8 +21,9 @@ $(function() {
             if (err) {
                 return $form.showFormError(err);
             }
+            // return $form.showFormError(result.id);
             // refresh();
-            return location.assign('/blog/' + blog.id);
+            return location.assign('/blog/' + result.blog_id); 
         });
     });
 });
